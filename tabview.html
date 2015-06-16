@@ -5,25 +5,17 @@
 <body>
 
     <div id="items">
+      <template id="template" "x-temmplate">
       <div class="window" v-repeat="windows">
         <ul>
           <li v-repeat="tabs">
-            <img src="{{favIconUrl}}" height="16" width="16" v-on="click: remove(this)"/>
+            <img v-attr="src:favIconUrl|favicon" height="16" width="16" v-on="click: remove(this)"/>
             <span v-on="click: focus(this)">{{title}}</span>
           </li>
         </ul>
       </div>
+    </template>
     </div>
-  <!--
-      <div id="items">
-        <ul>
-        <li v-repeat="tabs">
-            <img src="{{favIconUrl}}" height="16" width="16" v-on="click: remove(this)"/>
-            <span v-on="click: focus(this)">{{title}}</span>
-        </li>
-        </ul>
-     </div>
-   -->
     <script src="lib/vue.min.js"></script>
     <script src="lib/jquery-2.1.4.min.js"></script>
     <script src="main.js"></script>
