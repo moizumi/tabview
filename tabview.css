@@ -1,0 +1,13 @@
+.window {
+  border: solid 2px;
+  border-radius: 10px;
+  margin: 5px;
+}
+
+li {
+  list-style-type: none;
+}
+
+#template {
+  display: none;
+}
