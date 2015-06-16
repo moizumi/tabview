@@ -3,14 +3,14 @@
     <link rel="stylesheet" type="text/css" href="tabview.css">
 </head>
 <body>
-
     <div id="items">
       <template id="template" "x-temmplate">
-      <div class="window" v-repeat="windows">
+      <div class="window" v-repeat="windows" v-on="click: focus(this)">
+        <div class="window-head">{{tabs.length}} tabs</div>
         <ul>
-          <li v-repeat="tabs">
-            <img v-attr="src:favIconUrl|favicon" height="16" width="16" v-on="click: remove(this)"/>
-            <span v-on="click: focus(this)">{{title}}</span>
+          <li v-repeat="tabs" v-on="mouseover: activate(this)">
+            <div class="tab"><img class="favicon" v-attr="src:favIconUrl|favicon" v-on="click: remove(this, $event)"/>
+            {{title}}</div>
           </li>
         </ul>
       </div>

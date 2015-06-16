@@ -4,28 +4,46 @@
 
     var $body = $('body');
 
-    var items;
-    var windowMap = {};
+    var windows;
+    var taviewId;
 
-    chrome.tabs.onRemoved.addListener(function(tabId){
-      items.$data.windows.forEach(function(w){
-        var index = 0;
-        if(!w.tabs) {
-          return;
+
+    function searchWindow(id){
+      for(var i= 0, max = windows.length; i < max; i++) {
+        if(windows[i].id === id) {
+          return windows[i];
         }
-        w.tabs.forEach(function(t){
-          if(t.id === tabId) {
-            w.tabs.splice(index, 1);
-            return;
+      }
+    }
+
+    function removeTab(window, id){
+      if(!window) {
+        return;
+      }
+      var tabs = window.tabs;
+      if(!tabs){
+        return;
+      }
+      var index = 0;
+      for(var i= 0, max = tabs.length; i < max; i++) {
+          if(tabs[i].id === id) {
+            tabs.splice(index, 1);
+            return tabs[i];
           }
           index++;
-        });
-      });
+      }
+    }
+
+    chrome.tabs.onRemoved.addListener(function(tabId){
+      for(var i= 0, max = windows.length; i < max; i++) {
+        if(removeTab(windows[i], tabId)) {
+          return;
+        }
+      }
     });
 
-
     chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
-      var w = windowMap[tab.windowId];
+      var w = searchWindow(tab.windowId);
       if(!w) {
         return;
       }
@@ -40,7 +58,7 @@
 
     chrome.tabs.onReplaced.addListener(function(addedTabId, removedTabId){
       chrome.tabs.get(addedTabId,function(tab){
-        items.$data.windows.forEach(function(w){
+        windows.forEach(function(w){
             var tabs =  w.tabs;
             for(var i =0; i < tabs.length;i++){
               if(tabs[i].id == removedTabId) {
@@ -51,9 +69,8 @@
       });
     });
 
-
     chrome.tabs.onCreated.addListener(function(tab){
-      var w = windowMap[tab.windowId];
+      var w = searchWindow(tab.windowId);
       if(w) {
         w.tabs.push(tab);
       }
@@ -61,12 +78,11 @@
 
     chrome.windows.onCreated.addListener(function(w){
       chrome.windows.get(w.id, {populate:true},function(w){
-        items.$data.windows.push(w);
+        windows.push(w);
       });
     });
 
     chrome.windows.onRemoved.addListener(function(w){
-        var windows = items.$data.windows;
         for(var i= 0; i < windows.length; i++) {
           if(windows[i].id === w) {
             windows.$remove(i);
@@ -81,6 +97,7 @@
         var t = w.tabs[0];
         if(/^chrome-extension:.*tabview.html$/.test(t.url)
           && t.title === 'tabview'){
+          taviewId = w.id;
           return;
         }
         filtered.push(w);
@@ -88,26 +105,31 @@
       convert(filtered);
     });
 
-    function convert(windows) {
+    function convert(allWindows) {
       items = new Vue({
           el: '#items',
           template: '#template',
-          data : {windows: windows},
+          data : {windows: allWindows},
             methods: {
-              focus: function(item){
-                  chrome.windows.update(item.windowId, {focused:true});
-                  chrome.tabs.update(item.id, {active:true});
+              focus: function(window) {
+                // chrome.windows.update(window.id, {drawAttention:true});
+                chrome.windows.update(window.id, {focused:true});
+                chrome.windows.update(taviewId, {focused:true});
+                console.log('abc');
               },
-              remove: function(item){
+              activate: function(tab){
+                  chrome.tabs.update(tab.id, {active:true});
+              },
+              remove: function(item, e){
                   chrome.tabs.remove(item.id);
+                  e.stopPropagation();
               }
             }
-        });
-
-        items.$data.windows.forEach(function(w) {
-          windowMap[w.id] = w;
-        });
+          });
+        windows = items.$data.windows;
     }
+
+
 
     Vue.filter('favicon', function(value){
       if(!value) {
@@ -122,18 +144,24 @@
     });
 
     chrome.tabs.onMoved.addListener(function(id, info){
-      var tabs = windowMap[info.windowId].tabs;
+      var tabs = searchWindow(info.windowId).tabs;
       var tab = tabs[info.fromIndex];
       tabs.splice(info.fromIndex,1);
       tabs.splice(info.toIndex,0,tab);
     });
 
-    chrome.tabs.onAttached.addListener(function(w){
-      console.log("onAttached")
+    chrome.tabs.onAttached.addListener(function(tabId, info){
+      chrome.windows.get(info.newWindowId, {populate:true},function(w){
+          for(var i= 0, max = windows.length; i < max; i++) {
+            if(windows[i].id === w.id) {
+              return windows.$set(i, w);
+            }
+          }
+      });
     });
 
-    chrome.tabs.onDetached.addListener(function(w){
-      console.log("onDetached")
+    chrome.tabs.onDetached.addListener(function(tabId, info){
+      removeTab(searchWindow(info.oldWindowId),tabId);
     });
 
 })();
