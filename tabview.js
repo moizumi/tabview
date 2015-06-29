@@ -107,22 +107,59 @@
 
     function convert(allWindows) {
       items = new Vue({
-          el: '#items',
+          el: 'body',
           template: '#template',
           data : {windows: allWindows},
             methods: {
-              focus: function(window) {
-                // chrome.windows.update(window.id, {drawAttention:true});
+              highlight: function(window) {
                 chrome.windows.update(window.id, {focused:true});
                 chrome.windows.update(taviewId, {focused:true});
                 console.log('abc');
               },
+              focus: function(tab, e) {
+                chrome.windows.update(tab.windowId, {focused:true});
+                chrome.tabs.update(tab.id, {active:true});
+                e.stopPropagation();
+              },
               activate: function(tab){
-                  chrome.tabs.update(tab.id, {active:true});
+              //    chrome.tabs.update(tab.id, {active:true});
               },
               remove: function(item, e){
                   chrome.tabs.remove(item.id);
                   e.stopPropagation();
+              },
+              dragStart: function(item, e){
+                  e.dataTransfer.setData('id', item.id);
+                  item.$add('drag', true);
+                  console.log('dragStart');
+              },
+              dragEnd: function(e){
+                  console.log('dragEnd');
+              },
+              dragover: function(e) {
+                e.preventDefault();
+              },
+              dropItem: function(item, e) {
+                e.preventDefault();
+                var origin = e.dataTransfer;
+                var id = parseInt(origin.getData('id'), 10);
+                chrome.tabs.move(id, {windowId: item.windowId, index:item.index});
+                  e.stopPropagation();
+
+              },
+              mouseover: function(item, e) {
+                item.$set('hovered', true);
+                item.className = item.className + " hovered";
+              },
+              mouseout: function(item, e) {
+                item.$set('hovered', false);
+              },
+              toNewWindow: function(item, e) {
+                e.preventDefault();
+                var origin = e.dataTransfer;
+                var id = parseInt(origin.getData('id'), 10);
+                chrome.windows.create({tabId: id});
+                //chrome.tabs.move(id, {windowId: item.windowId, index:item.index});
               }
             }
           });
@@ -163,5 +200,7 @@
     chrome.tabs.onDetached.addListener(function(tabId, info){
       removeTab(searchWindow(info.oldWindowId),tabId);
     });
+
+
 
 })();

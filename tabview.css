@@ -1,7 +1,17 @@
+.drag {
+  background-color: red;
+  border: solid 2px;
+}
+
 .window {
   border: solid 2px;
   border-radius: 8px;
   margin: 5px;
+}
+
+#items {
+    width: 100%;
+    height: 100%;
 }
 
 ul {
@@ -25,23 +35,13 @@ li {
   text-overflow: ellipsis;
 }
 
-li:hover {
+.hovered {
   background: #afd7fb;
 }
 
-
-/*
-li:nth-child(odd) {
-  background-color:#f2fbff;
+li:active {
+  background: none;
 }
-li:nth-child(even) {
-  background-color:#d5f3fe;
-}
-
-#template {
-  display: none;
-}
-*/
 
 .window-head {
   width: 100%;
