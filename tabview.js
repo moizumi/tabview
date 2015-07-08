@@ -130,6 +130,7 @@
               },
               dragStart: function(item, e){
                   e.dataTransfer.setData('id', item.id);
+                  e.dataTransfer.setData('class', item.className);
                   item.$add('drag', true);
                   console.log('dragStart');
               },
@@ -143,9 +144,20 @@
                 e.preventDefault();
                 var origin = e.dataTransfer;
                 var id = parseInt(origin.getData('id'), 10);
-                chrome.tabs.move(id, {windowId: item.windowId, index:item.index});
+                var className = origin.getData('class');
+                if(className === 'tab') {
+                  chrome.tabs.move(id, {windowId: item.windowId, index:item.index});
                   e.stopPropagation();
-
+                  return;
+                }
+                var index = item.index;
+                chrome.tabs.query({windowId: id}, function(tabs){
+                  for(var i = 0, max = tabs.length; i < max; i++) {
+                    chrome.tabs.move(tabs[i].id, {windowId:item.windowId, index:index},
+                    function(){index++;});
+                  }
+                });
+                e.stopPropagation();
               },
               mouseover: function(item, e) {
                 item.$set('hovered', true);
