@@ -112,9 +112,8 @@
           data : {windows: allWindows},
             methods: {
               highlight: function(window) {
-                chrome.windows.update(window.id, {focused:true});
-                chrome.windows.update(taviewId, {focused:true});
-                console.log('abc');
+                // chrome.windows.update(window.id, {focused:true});
+                // chrome.windows.update(taviewId, {focused:true});
               },
               focus: function(tab, e) {
                 chrome.windows.update(tab.windowId, {focused:true});
@@ -130,9 +129,9 @@
               },
               dragStart: function(item, e){
                   e.dataTransfer.setData('id', item.id);
-                  e.dataTransfer.setData('class', item.className);
+                  e.dataTransfer.setData('class', item.$el.classList[0]);
                   item.$add('drag', true);
-                  console.log('dragStart');
+                  e.stopPropagation();
               },
               dragEnd: function(e){
                   console.log('dragEnd');
@@ -168,6 +167,10 @@
               },
               toNewWindow: function(item, e) {
                 e.preventDefault();
+                var className = e.dataTransfer.getData('class');
+                if(className === 'window') {
+                  return;
+                }
                 var origin = e.dataTransfer;
                 var id = parseInt(origin.getData('id'), 10);
                 chrome.windows.create({tabId: id});

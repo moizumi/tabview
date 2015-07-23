@@ -5,21 +5,23 @@
 <body>
     <template id="template" "x-temmplate">
     <div id="items" v-on="drop: toNewWindow(this, $event), dragover:dragover" >
-        <div draggable="true" class="window" v-repeat="windows"
+        <div class="window" draggable="true" v-repeat="windows"
           v-on="click: highlight(this),
                 dragover:dragover,
                 dragstart:dragStart(this, $event)">
         <div class="window-head">{{tabs.length}} tabs</div>
         <ul>
-          <li draggable="true" class="{{hovered ? 'hovered' : '' }}"  v-repeat="tabs"
-          v-on="drop:dropItem(this, $event),
+          <li draggable="true" class="tab {{hovered ? 'hovered' : '' }}"  v-repeat="tabs"
+          v-on="click: focus(this, $event),
+                drop:dropItem(this, $event),
                 dragover:dragover,
                 mouseover: activate(this),
                 dragstart:dragStart(this, $event),
                 dragend:dragEnd,
                 mouseover:mouseover(this, $event),
                 mouseout:mouseout(this, $event)">
-            <div class="tab" v-on="click: focus(this, $event)">
+            <!-- <div v-on="click: focus(this, $event)">
+            --> <div>
               <img class="favicon" v-attr="src:favIconUrl|favicon" v-on="click: remove(this, $event)"/>
               {{title}}
             </div>
